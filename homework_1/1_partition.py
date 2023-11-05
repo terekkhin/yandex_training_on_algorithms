@@ -22,7 +22,8 @@ def partition(array, x, left, right):
     for i in range(left, right):
         if array[i] < x:
             array[e], array[n] = array[n], array[e]
-            array[g], array[n] = array[n], array[g]
+            if e != g:
+                array[g], array[n] = array[n], array[g]
             e += 1
             g += 1
             n += 1
