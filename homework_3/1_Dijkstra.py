@@ -17,7 +17,7 @@ def dijkstra(adj_list, start, finish):
     dist = [inf] * (N + 1)
     dist[start] = 0
     curr_v = 0
-    while not all(visited):
+    for _ in range(N):
         # Выбор непосещенной вершины с минимальным расстоянием
         min_dist = inf
         for i, _ in enumerate(dist):
@@ -32,14 +32,6 @@ def dijkstra(adj_list, start, finish):
                 dist[vertex] = dist[curr_v] + weight
             else:
                 dist[vertex] = min(dist[vertex], dist[curr_v] + weight)
-
-        stop_flag = True
-        for i, _ in enumerate(dist):
-            if dist[i] != inf and not visited[i]:
-                stop_flag = False
-                break
-        if stop_flag:
-            break
     return dist[finish] if dist[finish] != inf else -1
 
 
