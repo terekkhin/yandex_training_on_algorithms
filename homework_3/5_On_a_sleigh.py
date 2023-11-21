@@ -43,52 +43,91 @@
 import heapq
 
 
+# def dijkstra(adj_list, prep, start, finish):
+#     inf = float("inf")
+#     heap = []
+#     N = len(adj_list) - 1
+#     visited = [False] * (N + 1)
+#     visited[0] = True
+#     dist = [inf] * (N + 1)
+#     dist[start] = 0
+#     prev = [-1] * (N + 1)
+#     heapq.heappush(heap, (prep[start][0], prep[start][1], start, -1))
+#     heapq.heappush(heap, (inf, 0, -1, -1))
+#     while True:
+#         # Выбор непосещенной вершины с минимальным расстоянием
+#         curr_v = heapq.heappop(heap)
+#         if curr_v[2] == -1:
+#             break
+#
+#         if visited[finish]:
+#             break
+#
+#         # Изменение весов
+#         for weight, vertex in adjacency_list[curr_v[2]]:
+#             curr_speed = curr_v[1]
+#             wait = 0
+#             prev_v = curr_v[3]
+#             if (weight / curr_speed) > (weight / prep[curr_v[2]][1] + prep[curr_v[2]][0]):
+#                 curr_speed = prep[curr_v[2]][1]
+#                 wait = prep[curr_v[2]][0]
+#                 prev_v = curr_v[2]
+#             if weight / curr_speed + wait + curr_v[0] < dist[vertex]:
+#                 dist[vertex] = weight / curr_speed + curr_v[0] + wait
+#                 prev[vertex] = prev_v
+#             heapq.heappush(heap, (weight / curr_speed + curr_v[0] + wait, curr_speed, vertex, prev_v))
+#             if curr_speed < prep[curr_v[2]][1]:
+#                 heapq.heappush(heap, (weight / prep[curr_v[2]][1] + curr_v[0] + prep[curr_v[2]][0], prep[curr_v[2]][1], vertex, curr_v[2]))
+#
+#
+#         # Отметка посещения
+#         visited[curr_v[2]] = True
+#
+#     path = []
+#     curr_v = finish
+#     while prev[curr_v] != -1:
+#         path.append(curr_v)
+#         curr_v = prev[curr_v]
+#
+#     return dist[finish] if dist[finish] != inf else -1, [start] + path[::-1]
+
 def dijkstra(adj_list, prep, start, finish):
     inf = float("inf")
     heap = []
     N = len(adj_list) - 1
     visited = [False] * (N + 1)
     visited[0] = True
-    dist = [inf] * (N + 1)
-    dist[start] = 0
     prev = [-1] * (N + 1)
-    prev_v = -1
-    heapq.heappush(heap, (0, 0.1, start, -1))
+    dist = [(inf, 0) for _ in range(N + 1)]
+    dist[start] = (0, 0)
+    heapq.heappush(heap, (prep[start][0], prep[start][1], start, start))
     heapq.heappush(heap, (inf, 0, -1, -1))
-    while True:
-        # Выбор непосещенной вершины с минимальным расстоянием
-        curr_v = heapq.heappop(heap)
-        if curr_v[2] == -1:
+
+    curr_v = heapq.heappop(heap)
+    while curr_v[2] != -1:
+        if dist[finish][0] != inf:
             break
-
-        # Отметка посещения
-        visited[curr_v[2]] = True
-
-        if visited[finish]:
-            break
-
-        # Изменение весов
         for weight, vertex in adjacency_list[curr_v[2]]:
-            curr_speed = curr_v[1]
-            wait = 0
-            prev_v = curr_v[3]
-            if (weight / curr_speed) > (weight / prep[curr_v[2]][1] + prep[curr_v[2]][0]):
-                curr_speed = prep[curr_v[2]][1]
-                wait = prep[curr_v[2]][0]
-                prev_v = curr_v[2]
-            if weight / curr_speed + wait + curr_v[0] < dist[vertex]:
-                dist[vertex] = weight / curr_speed + curr_v[0] + wait
-                prev[vertex] = prev_v
-            heapq.heappush(heap, (weight / curr_speed + curr_v[0] + wait, curr_speed, vertex, prev_v))
-            heapq.heappush(heap, (weight / prep[curr_v[2]][1] + curr_v[0] + prep[curr_v[2]][0], curr_speed, vertex, prev_v))
+            if dist[vertex][0] > weight / curr_v[1] + curr_v[0]:
+                dist[vertex] = (weight / curr_v[1] + curr_v[0], curr_v[1])
+                prev[vertex] = curr_v[3]
+                heapq.heappush(heap, (weight / curr_v[1] + curr_v[0], curr_v[1], vertex, curr_v[3]))
+            if dist[vertex][1] < curr_v[1]:
+                heapq.heappush(heap, (weight / curr_v[1] + curr_v[0], curr_v[1], vertex, curr_v[3]))
+            if curr_v[1] < prep[curr_v[2]][1]:
+                if dist[vertex][0] > weight / prep[curr_v[2]][1] + curr_v[0] + prep[curr_v[2]][0]:
+                    dist[vertex] = (weight / prep[curr_v[2]][1] + curr_v[0] + prep[curr_v[2]][0], prep[curr_v[2]][1])
+                    prev[vertex] = curr_v[2]
+                heapq.heappush(heap, (weight / prep[curr_v[2]][1] + curr_v[0] + prep[curr_v[2]][0], prep[curr_v[2]][1], vertex, vertex))
+        curr_v = heapq.heappop(heap)
 
     path = []
     curr_v = finish
-    while prev[curr_v] != -1:
+    while curr_v != start:
         path.append(curr_v)
         curr_v = prev[curr_v]
 
-    return dist[finish] if dist[finish] != inf else -1, [start] + path[::-1]
+    return dist[finish][0] if dist[finish][0] != inf else -1, [start] + path[::-1]
 
 
 N = int(input())
@@ -107,7 +146,6 @@ time = 0
 path = []
 for i in range(2, N + 1):
     curr_time, curr_path = dijkstra(adjacency_list, prep, i, 1)
-    print(i, curr_time, curr_path)
     if curr_time > time:
         time = curr_time
         path = curr_path
